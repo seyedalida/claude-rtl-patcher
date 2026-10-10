@@ -102,6 +102,20 @@ test('runtime performance & idempotency: script contains guard preventing duplic
 
 test('benchmark: regex RTL detection performance across 10,000 mixed elements is under 15ms', () => {
     const RTL_REGEX = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+    const RTL_REGEX_GLOBAL = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g;
+    const LTR_REGEX = /[A-Za-z]/;
+    const LTR_REGEX_GLOBAL = /[A-Za-z]/g;
+
+    function isRTLContent(text, isForce = false) {
+        if (isForce) return true;
+        if (!text) return false;
+        if (!RTL_REGEX.test(text)) return false;
+        if (!LTR_REGEX.test(text)) return true;
+
+        const rtlCount = (text.match(RTL_REGEX_GLOBAL) || []).length;
+        const ltrCount = (text.match(LTR_REGEX_GLOBAL) || []).length;
+        return rtlCount >= ltrCount * 0.35;
+    }
 
     const samples = [
         'Hello this is a purely English text sentence with several words and numbers 12345.',
@@ -117,15 +131,15 @@ test('benchmark: regex RTL detection performance across 10,000 mixed elements is
     const ITERATIONS = 10000;
     for (let i = 0; i < ITERATIONS; i++) {
         const text = samples[i % samples.length];
-        if (RTL_REGEX.test(text)) {
+        if (isRTLContent(text)) {
             rtlCount++;
         }
     }
     const duration = performance.now() - startTime;
 
-    assert.equal(rtlCount, 6000, 'Regex detection count was incorrect');
+    assert.equal(rtlCount, 4000, 'RTL detection count was incorrect (sample 5 is English with inline word)');
     assert.ok(
         duration < 15,
-        `RTL regex check took too long: ${duration.toFixed(2)}ms for ${ITERATIONS} items (expected < 15ms)`
+        `RTL check took too long: ${duration.toFixed(2)}ms for ${ITERATIONS} items (expected < 15ms)`
     );
 });

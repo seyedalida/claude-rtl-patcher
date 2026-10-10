@@ -45,6 +45,51 @@ test('lib/runtime.js provides Alt+R, Shift+2 fix, and updateDir logic', () => {
     assert.match(script, /let\s+pendingScope\s*=\s*null;/);
     assert.match(script, /function\s+updateDir\(scopeRoot\)/);
     assert.match(script, /#claude-rtl-widget,\s*#claude-rtl-toast/);
+    assert.match(script, /function\s+isRTLContent\(text,\s*isForce/);
+});
+
+test('lib/runtime.js isRTLContent correctly discriminates mixed and predominantly English paragraphs', () => {
+    const script = getRuntimeScript();
+
+    // Verify isRTLContent definition exists in script
+    assert.match(script, /function\s+isRTLContent\(text,\s*isForce/);
+
+    // Extract isRTLContent function definition directly
+    const fnMatch = script.match(/function\s+isRTLContent\s*\([\s\S]*?\n\s*\}/);
+    assert.ok(fnMatch, 'Could not find isRTLContent definition in script');
+
+    const RTL_REGEX = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+    const RTL_REGEX_GLOBAL = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g;
+    const LTR_REGEX = /[A-Za-z]/;
+    const LTR_REGEX_GLOBAL = /[A-Za-z]/g;
+
+    const runner = new Function('RTL_REGEX', 'RTL_REGEX_GLOBAL', 'LTR_REGEX', 'LTR_REGEX_GLOBAL', `
+        ${fnMatch[0]}
+        return isRTLContent;
+    `);
+    const isRTLContent = runner(RTL_REGEX, RTL_REGEX_GLOBAL, LTR_REGEX, LTR_REGEX_GLOBAL);
+
+    // Pure English -> LTR
+    assert.equal(isRTLContent('Hello this is a purely English text sentence with several words.'), false);
+
+    // Pure Persian -> RTL
+    assert.equal(isRTLContent('سلام این یک متن کاملا فارسی است.'), true);
+
+    // English with a Persian word quote -> MUST remain LTR (the bug we fixed!)
+    assert.equal(isRTLContent('We call this concept اصالت in philosophy.'), false);
+    assert.equal(isRTLContent('The word سلام means hello in Persian.'), false);
+    assert.equal(isRTLContent('This bug was reported by علی.'), false);
+
+    // Persian with technical/English terms -> MUST be RTL
+    assert.equal(isRTLContent('Docker یک ابزار کانتینرسازی برای استقرار برنامه‌هاست.'), true);
+    assert.equal(isRTLContent('API کار نمی‌کند و خطای ۵۰۰ برمی‌گرداند.'), true);
+    assert.equal(isRTLContent('کتاب The Lean Startup را حتما بخوانید.'), true);
+
+    // Force mode -> Always true
+    assert.equal(isRTLContent('Hello world', true), true);
+
+    // Empty text -> false
+    assert.equal(isRTLContent(''), false);
 });
 
 test('lib/engine.js safely injects CSS via JSON.stringify without template literal breakage', () => {
