@@ -34,7 +34,7 @@ const pkgVersion = fs.existsSync(pkgPath) ? JSON.parse(fs.readFileSync(pkgPath, 
 
 if (isHelpFlag) {
     console.log(`
-Usage: npx claude-rtl-patcher [options] [path/to/Claude/app.asar]
+Usage: npx @seyedalida/claude-rtl-patcher [options] [path/to/Claude/app.asar]
 
 Options:
   --auto, -a       Auto-detect Claude version and apply recommended patch
@@ -174,7 +174,7 @@ async function patchClaude(fontOnlyOverride) {
     if (!fs.existsSync(ASAR_PATH)) {
         console.error(red(`[!] Claude app not found at ${ASAR_PATH}.`));
         console.log(yellow('If you installed Claude in a custom location, you can pass the path as an argument:'));
-        console.log(yellow('npx claude-rtl-patcher /your/custom/path/to/Claude'));
+        console.log(yellow('npx @seyedalida/claude-rtl-patcher /your/custom/path/to/Claude'));
         process.exit(1);
     }
 
