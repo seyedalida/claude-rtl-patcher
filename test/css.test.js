@@ -10,6 +10,10 @@ test('lib/font defines Vazirmatn Variable font-weight 100 900 and unicode-range'
     assert.match(fontCss, /unicode-range:/);
     assert.match(fontCss, /U\+0600-06FF/);
     assert.match(fontCss, /U\+200C/); // ZWNJ
+    assert.match(fontCss, /local\('Vazirmatn Variable'\)/);
+    assert.match(fontCss, /local\('Vazirmatn'\)/);
+    assert.match(fontCss, /local\('Vazir'\)/);
+    assert.match(fontCss, /local\('وزیرمتن'\)/);
 });
 
 test('CSS_INJECT_FULL scopes Vazirmatn font to RTL elements to protect English chats', () => {
