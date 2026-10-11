@@ -136,9 +136,11 @@ test('floating widget styles are present in both full and font-only payloads', (
     assert.match(CSS_INJECT_FULL, /#claude-rtl-widget\s*\{/);
     assert.match(CSS_INJECT_FULL, /#claude-rtl-widget-btn/);
     assert.match(CSS_INJECT_FULL, /#claude-rtl-widget-panel/);
+    assert.match(CSS_INJECT_FULL, /#claude-rtl-widget-panel::after/);
     assert.match(CSS_INJECT_FONT_ONLY, /#claude-rtl-widget\s*\{/);
     assert.match(CSS_INJECT_FONT_ONLY, /#claude-rtl-widget-btn/);
     assert.match(CSS_INJECT_FONT_ONLY, /#claude-rtl-widget-panel/);
+    assert.match(CSS_INJECT_FONT_ONLY, /#claude-rtl-widget-panel::after/);
 });
 
 test('Force RTL mode list rules strictly exclude navigation, sidebar, and headers', () => {

@@ -46,6 +46,8 @@ test('lib/runtime.js provides Alt+R, Shift+2 fix, and updateDir logic', () => {
     assert.match(script, /function\s+updateDir\(scopeRoot\)/);
     assert.match(script, /#claude-rtl-widget,\s*#claude-rtl-toast/);
     assert.match(script, /function\s+isRTLContent\(text,\s*isForce/);
+    assert.match(script, /classList\.toggle\(["']is-open["']\)/);
+    assert.match(script, /classList\.remove\(["']is-open["']\)/);
 });
 
 test('lib/runtime.js isRTLContent correctly discriminates mixed and predominantly English paragraphs', () => {
