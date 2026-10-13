@@ -166,3 +166,10 @@ test('user message container preserves LTR structural direction to keep bubble o
     assert.match(CSS_INJECT_FULL, /\[data-cds="UserMessage"\]\s+\[dir="rtl"\]/);
     assert.doesNotMatch(CSS_INJECT_FULL, /\[data-cds="UserMessage"\]\[dir="rtl"\]/);
 });
+
+test('disabled mode rules reset typography variables to native Claude fonts', () => {
+    assert.match(CSS_INJECT_FULL, /html\[data-claude-rtl="disabled"\]/);
+    assert.match(CSS_INJECT_FULL, /--font-claude-response:\s*var\(--font-anthropic-serif/);
+    assert.match(CSS_INJECT_FULL, /--font-user-message:\s*var\(--font-ui/);
+    assert.match(CSS_INJECT_FONT_ONLY, /html\[data-claude-rtl="disabled"\]/);
+});
