@@ -101,6 +101,10 @@ class MockElement {
 
     matches(selector) {
         if (!selector) return false;
+        if (selector.includes(',')) {
+            const parts = selector.split(',').map(s => s.trim()).filter(Boolean);
+            return parts.some(p => this.matches(p));
+        }
         const sel = selector.trim();
         if (sel === '*') return true;
         if (sel.startsWith('#')) return this.id === sel.slice(1);
