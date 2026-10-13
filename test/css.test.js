@@ -127,8 +127,12 @@ test('getRuntimeScript provides Alt+R shortcut, Shift+2 @ fix, updateDir, and to
 test('--claude-rtl-font-size is declared in :root and applied to RTL text elements', () => {
     assert.match(CSS_INJECT_FULL, /--claude-rtl-font-size:\s*var\(--cds-font-size-prose/);
     assert.match(CSS_INJECT_FULL, /font-size:\s*var\(--claude-rtl-font-size\)/);
+    assert.match(CSS_INJECT_FULL, /p\[dir="rtl"\]/);
+    assert.match(CSS_INJECT_FULL, /li\[dir="rtl"\]/);
     assert.match(CSS_INJECT_FONT_ONLY, /--claude-rtl-font-size:\s*var\(--cds-font-size-prose/);
     assert.match(CSS_INJECT_FONT_ONLY, /font-size:\s*var\(--claude-rtl-font-size\)/);
+    assert.match(CSS_INJECT_FONT_ONLY, /p\[dir="rtl"\]/);
+    assert.match(CSS_INJECT_FONT_ONLY, /li\[dir="rtl"\]/);
 });
 
 test('CSS_INJECT_FULL strictly scopes typography without un-scoped p, li selector', () => {
