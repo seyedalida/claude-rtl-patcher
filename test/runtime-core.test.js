@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isRTLContent, getConfig, saveConfig, updateDir, applyMode, applyTypographySettings, MODES, LABELS } = require('../lib/runtime-core');
+const { isRTLContent, getConfig, saveConfig, updateDir, applyMode, applyTypographySettings, shouldSkipMutationBatch, MODES, LABELS } = require('../lib/runtime-core');
 const { createMockWindow } = require('./helpers/mock-dom');
 
 test('runtime-core isRTLContent distinguishes RTL vs LTR content', () => {
@@ -88,4 +88,37 @@ test('runtime-core switching back from disabled to auto restores custom typograp
 
     const p = document.getElementById('persian');
     assert.equal(p.getAttribute('dir'), 'rtl');
+});
+
+test('observer batch filter skips code-only mutations but keeps message batches', () => {
+    const { document } = createMockWindow(`
+        <main>
+            <div class="monaco-editor"><div>const x = 1;</div></div>
+            <article><p>سلام دنیا</p></article>
+        </main>
+    `);
+    const editor = document.querySelector('.monaco-editor');
+    const codeLine = editor.children[0];
+    const msg = document.querySelector('p');
+
+    assert.equal(shouldSkipMutationBatch([{ target: codeLine, addedNodes: [codeLine] }]), true);
+    assert.equal(shouldSkipMutationBatch([{ target: msg, addedNodes: [msg] }]), false);
+    assert.equal(shouldSkipMutationBatch([]), true);
+});
+
+test('observer batch filter never drops mixed or streaming-prose batches', () => {
+    const { document } = createMockWindow(`
+        <main>
+            <div class="monaco-editor"><div>code</div></div>
+            <article><p>سلام</p></article>
+        </main>
+    `);
+    const codeLine = document.querySelector('.monaco-editor').children[0];
+    const msg = document.querySelector('p');
+
+    assert.equal(shouldSkipMutationBatch([
+        { target: codeLine, addedNodes: [codeLine] },
+        { target: msg, addedNodes: [msg] }
+    ]), false);
+    assert.equal(shouldSkipMutationBatch([{ target: msg, addedNodes: [] }]), true);
 });
