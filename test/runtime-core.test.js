@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isRTLContent, getConfig, saveConfig, updateDir, applyMode, applyTypographySettings, shouldSkipMutationBatch, MODES, LABELS } = require('../lib/runtime-core');
+const { isRTLContent, getConfig, saveConfig, updateDir, applyMode, applyTypographySettings, shouldSkipMutationBatch, scheduleUpdateDir, MODES, LABELS } = require('../lib/runtime-core');
 const { createMockWindow } = require('./helpers/mock-dom');
 
 test('runtime-core isRTLContent distinguishes RTL vs LTR content', () => {
@@ -152,4 +152,47 @@ test('updateDir still rescans settled nodes in force mode after pruning', () => 
     updateDir(document, { config: cfg });
 
     assert.equal(document.getElementById('msg').getAttribute('dir'), 'rtl');
+});
+
+test('scheduler runs a lone update on the fast path exactly once', () => {
+    const { document } = createMockWindow(`<main><article><p id="a">سلام</p></article></main>`);
+    const frames = [];
+    const cfg = { mode: 'auto', fontSize: '16', lineHeight: '1.65', customFont: '' };
+    const deps = {
+        config: cfg,
+        now: () => 1000,
+        requestFrame: (fn) => { frames.push(fn); },
+        setTimer: () => { throw new Error('trailing timer must not arm for a lone update'); },
+        clearTimer: () => {}
+    };
+    scheduleUpdateDir(document, deps);
+    assert.equal(frames.length, 1);
+    frames[0]();
+    assert.equal(document.getElementById('a').getAttribute('dir'), 'rtl');
+});
+
+test('scheduler coalesces burst schedules into a single trailing run', () => {
+    const { document } = createMockWindow(`<main><article><p id="b">سلام</p></article></main>`);
+    // NOTE: fake epoch far from the lone-update test's epoch (1000) because
+    // lastRunAt is module-level state shared across tests in this file.
+    let now = 100000;
+    const timers = [];
+    let seq = 0;
+    const cfg = { mode: 'auto', fontSize: '16', lineHeight: '1.65', customFont: '' };
+    const deps = {
+        config: cfg,
+        now: () => now,
+        requestFrame: (fn) => { fn(); },
+        setTimer: (fn) => { const id = ++seq; timers.push({ id, fn, cancelled: false }); return id; },
+        clearTimer: (id) => { const t = timers.find((t) => t.id === id); if (t) t.cancelled = true; }
+    };
+    scheduleUpdateDir(document, deps);
+    now = 100050;
+    scheduleUpdateDir(document, deps);
+    now = 100100;
+    scheduleUpdateDir(document, deps);
+    const live = timers.filter((t) => !t.cancelled);
+    assert.equal(live.length, 1);
+    live[0].fn();
+    assert.equal(document.getElementById('b').getAttribute('dir'), 'rtl');
 });
