@@ -196,3 +196,26 @@ test('scheduler coalesces burst schedules into a single trailing run', () => {
     live[0].fn();
     assert.equal(document.getElementById('b').getAttribute('dir'), 'rtl');
 });
+
+test('composer ProseMirror typing path still sets dir live', () => {
+    const { setupShortcuts } = require('../lib/runtime-core');
+    const { document, localStorage } = createMockWindow('<main></main>');
+    const prevDoc = global.document;
+    const prevStorage = global.localStorage;
+    global.document = document;
+    global.localStorage = localStorage;
+    try {
+        setupShortcuts();
+        const editor = document.createElement('div');
+        editor.setAttribute('contenteditable', 'true');
+        editor.textContent = 'سلام از ادیتور';
+        document.body.appendChild(editor);
+        editor.dispatchEvent({ type: 'input', target: editor, bubbles: true });
+        const h = document.body._listeners.get('input') || [];
+        for (const fn of h) fn({ target: editor });
+        assert.equal(editor.getAttribute('dir'), 'rtl');
+    } finally {
+        global.document = prevDoc;
+        global.localStorage = prevStorage;
+    }
+});

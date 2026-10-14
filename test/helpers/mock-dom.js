@@ -32,6 +32,13 @@ class MockElement {
         return false;
     }
 
+    get isContentEditable() {
+        const val = this.getAttribute('contenteditable');
+        if (val === null) return false;
+        const lower = String(val).toLowerCase();
+        return lower === '' || lower === 'true';
+    }
+
     get id() {
         return this.getAttribute('id') || '';
     }
