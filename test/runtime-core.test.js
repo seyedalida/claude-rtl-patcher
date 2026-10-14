@@ -122,3 +122,34 @@ test('observer batch filter never drops mixed or streaming-prose batches', () =>
     ]), false);
     assert.equal(shouldSkipMutationBatch([{ target: msg, addedNodes: [] }]), true);
 });
+
+test('updateDir prunes protected subtrees without changing outcomes', () => {
+    const { document } = createMockWindow(`
+        <main>
+            <article><p id="msg">سلام دنیا</p></article>
+            <div class="monaco-editor"><div><p id="editorP">کد داخل ادیتور</p></div></div>
+            <pre id="block"><code>const y = 2;</code></pre>
+        </main>
+    `);
+    const cfg = { mode: 'auto', fontSize: '16', lineHeight: '1.65', customFont: '' };
+    updateDir(document, { config: cfg });
+
+    assert.equal(document.getElementById('msg').getAttribute('dir'), 'rtl');
+    const editorP = document.getElementById('editorP');
+    assert.equal(editorP.getAttribute('dir'), null);
+    assert.equal(editorP.getAttribute('data-claude-dir'), null);
+    const block = document.getElementById('block');
+    assert.equal(block.getAttribute('dir'), 'ltr');
+});
+
+test('updateDir still rescans settled nodes in force mode after pruning', () => {
+    const { document } = createMockWindow(`
+        <main>
+            <article><p id="msg" dir="ltr" data-claude-dir="ltr">سلام دوباره</p></article>
+        </main>
+    `);
+    const cfg = { mode: 'force', fontSize: '16', lineHeight: '1.65', customFont: '' };
+    updateDir(document, { config: cfg });
+
+    assert.equal(document.getElementById('msg').getAttribute('dir'), 'rtl');
+});
