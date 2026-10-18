@@ -32,8 +32,14 @@ test('CSS_INJECT_FONT_ONLY scopes Vazirmatn font to RTL elements', () => {
 });
 
 test('code blocks and inline code are explicitly preserved with monospace font and LTR', () => {
-    assert.match(CSS_INJECT_FULL, /pre,\s*pre \*/);
-    assert.match(CSS_INJECT_FULL, /code,\s*code \*/);
+    const { MONOSPACE_SELECTORS } = require('../lib/css');
+    assert.match(MONOSPACE_SELECTORS, /(^|\n)pre,\ncode,/m);
+    // Perf: no descendant-universal `X *` companions in the monospace block —
+    // Blink matches them per-node on every remount (tab switch); bare roots
+    // inherit font/direction to children, so companions are pure match cost.
+    // (Other blocks — KaTeX, thinking, codeblock-container — keep theirs.)
+    assert.doesNotMatch(MONOSPACE_SELECTORS, /\*\s*,/);
+    assert.doesNotMatch(MONOSPACE_SELECTORS, /\*\s*$/m);
     assert.match(CSS_INJECT_FULL, /\.code-block__code/);
     assert.match(CSS_INJECT_FULL, /\[class\*="code-block" i\]/);
     assert.match(CSS_INJECT_FULL, /\[class\*="group\/copy"\]/);
