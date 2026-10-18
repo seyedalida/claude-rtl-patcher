@@ -219,3 +219,19 @@ test('composer ProseMirror typing path still sets dir live', () => {
         global.localStorage = prevStorage;
     }
 });
+
+test('isBulkMutationBatch detects bulk view mounts exceeding threshold', () => {
+    const { isBulkMutationBatch } = require('../lib/runtime-core');
+    assert.equal(typeof isBulkMutationBatch, 'function');
+    assert.equal(isBulkMutationBatch([]), false);
+    assert.equal(isBulkMutationBatch([{ addedNodes: [1, 2, 3] }]), false);
+
+    const largeBatch = [{ addedNodes: new Array(50).fill({}) }];
+    assert.equal(isBulkMutationBatch(largeBatch), true);
+
+    const splitBatch = [
+        { addedNodes: new Array(25).fill({}) },
+        { addedNodes: new Array(20).fill({}) }
+    ];
+    assert.equal(isBulkMutationBatch(splitBatch), true);
+});
