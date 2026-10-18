@@ -40,6 +40,10 @@ test('code blocks and inline code are explicitly preserved with monospace font a
     // (Other blocks — KaTeX, thinking, codeblock-container — keep theirs.)
     assert.doesNotMatch(MONOSPACE_SELECTORS, /\*\s*,/);
     assert.doesNotMatch(MONOSPACE_SELECTORS, /\*\s*$/m);
+    // Perf round 2: thinking-block companions are the same per-node match cost.
+    // Bare roots keep LTR isolation via inheritance (verified identical computed
+    // styles in real Chrome except benign bidi on plain LTR wrappers).
+    assert.match(CSS_INJECT_FULL, /\[class\*="thinking" i\],\n\[class\*="thought" i\],\n\[class\*="reasoning" i\],/);
     assert.match(CSS_INJECT_FULL, /\.code-block__code/);
     assert.match(CSS_INJECT_FULL, /\[class\*="code-block" i\]/);
     assert.match(CSS_INJECT_FULL, /\[class\*="group\/copy"\]/);
