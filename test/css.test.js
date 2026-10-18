@@ -187,3 +187,13 @@ test('disabled mode rules reset typography variables to native Claude fonts', ()
     assert.match(CSS_INJECT_FULL, /--font-user-message:\s*var\(--font-ui/);
     assert.match(CSS_INJECT_FONT_ONLY, /html\[data-claude-rtl="disabled"\]/);
 });
+
+test('lib/css.js exports buildRulesCssPayload excluding embedded Base64 font data', () => {
+    const { buildRulesCssPayload } = require('../lib/css');
+    assert.equal(typeof buildRulesCssPayload, 'function');
+    const rulesOnly = buildRulesCssPayload();
+    assert.match(rulesOnly, /\[dir="rtl"\]/);
+    assert.match(rulesOnly, /ui-monospace/);
+    assert.doesNotMatch(rulesOnly, /data:font\/woff2;charset=utf-8;base64/);
+    assert.ok(rulesOnly.length < 25000, `Rules payload should be under 25KB, got ${rulesOnly.length} bytes`);
+});
