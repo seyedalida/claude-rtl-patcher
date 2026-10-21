@@ -197,3 +197,18 @@ test('lib/css.js exports buildRulesCssPayload excluding embedded Base64 font dat
     assert.doesNotMatch(rulesOnly, /data:font\/woff2;charset=utf-8;base64/);
     assert.ok(rulesOnly.length < 25000, `Rules payload should be under 25KB, got ${rulesOnly.length} bytes`);
 });
+
+test('proportional RTL headings include direct [dir="rtl"] attribute selectors and never render smaller than 1.0em', () => {
+    for (let level = 1; level <= 6; level++) {
+        const directSelector = new RegExp(`h${level}\\[dir="rtl"\\]`);
+        assert.match(CSS_INJECT_FULL, directSelector, `h${level}[dir="rtl"] missing from CSS_INJECT_FULL`);
+        assert.match(CSS_INJECT_FONT_ONLY, directSelector, `h${level}[dir="rtl"] missing from CSS_INJECT_FONT_ONLY`);
+    }
+
+    assert.match(CSS_INJECT_FULL, /h4\[dir="rtl"\][^{]*\{[^}]*font-size:\s*1\.1em/);
+    assert.match(CSS_INJECT_FULL, /h5\[dir="rtl"\][^{]*\{[^}]*font-size:\s*1\.05em/);
+    assert.match(CSS_INJECT_FULL, /h6\[dir="rtl"\][^{]*\{[^}]*font-size:\s*1\.0em/);
+    assert.match(CSS_INJECT_FULL, /h4\[dir="rtl"\][^{]*\{[^}]*font-weight:\s*700/);
+    assert.match(CSS_INJECT_FULL, /h5\[dir="rtl"\][^{]*\{[^}]*font-weight:\s*700/);
+    assert.match(CSS_INJECT_FULL, /h6\[dir="rtl"\][^{]*\{[^}]*font-weight:\s*700/);
+});
