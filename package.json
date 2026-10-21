@@ -1,6 +1,6 @@
 {
   "name": "@seyedalida/claude-rtl-patcher",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Automated patcher to add Vazirmatn Variable font and Smart RTL support to Claude Desktop app for macOS, Windows, and Linux.",
   "main": "index.js",
   "bin": {
